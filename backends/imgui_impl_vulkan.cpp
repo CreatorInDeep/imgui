@@ -1206,6 +1206,29 @@ void ImGui_ImplVulkan_SetMinImageCount(uint32_t min_image_count)
     bd->VulkanInitInfo.MinImageCount = min_image_count;
 }
 
+VkDescriptorSet ImGui_ImplVulkan_UpdateTexture(VkDescriptorSet dset, VkSampler sampler, VkImageView image_view, VkImageLayout image_layout)
+{
+    ImGui_ImplVulkan_Data* bd = ImGui_ImplVulkan_GetBackendData();
+    ImGui_ImplVulkan_InitInfo* v = &bd->VulkanInitInfo;
+
+    // Update the Descriptor Set:
+    {
+        VkDescriptorImageInfo desc_image[1] = {};
+        desc_image[0].sampler = sampler;
+        desc_image[0].imageView = image_view;
+        desc_image[0].imageLayout = image_layout;
+        VkWriteDescriptorSet write_desc[1] = {};
+        write_desc[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        write_desc[0].dstSet = dset;
+        write_desc[0].descriptorCount = 1;
+        write_desc[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        write_desc[0].pImageInfo = desc_image;
+        vkUpdateDescriptorSets(v->Device, 1, write_desc, 0, NULL);
+    }
+    
+    return dset;
+}
+
 // Register a texture
 // FIXME: This is experimental in the sense that we are unsure how to best design/tackle this problem, please post to https://github.com/ocornut/imgui/pull/914 if you have suggestions.
 VkDescriptorSet ImGui_ImplVulkan_AddTexture(VkSampler sampler, VkImageView image_view, VkImageLayout image_layout)
